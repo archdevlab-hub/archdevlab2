@@ -691,3 +691,303 @@ input:focus, select:focus, textarea:focus {
   .card { padding: 14px; }
   .stat-card .value { font-size: 22px; }
 }
+  <!-- ============================================================
+     JAVASCRIPT - BÖLÜM 1/2 (Core + Education + Net)
+     ============================================================ -->
+<script>
+  // ============================================
+  // 1. STORAGE MANAGER
+  // ============================================
+  const Storage = {
+    prefix: 'archdevlab_',
+    defaults: {
+      tasks: [],
+      nets: [],
+      goals: [],
+      pomodoro: { sessions: 0, totalMinutes: 0 },
+      calendar: {},
+      settings: { theme: 'dark', fontSize: 16, notifications: true }
+    },
+    
+    get(key) {
+      try {
+        const data = localStorage.getItem(this.prefix + key);
+        return data ? JSON.parse(data) : this.defaults[key];
+      } catch { return this.defaults[key]; }
+    },
+    
+    set(key, value) {
+      try {
+        localStorage.setItem(this.prefix + key, JSON.stringify(value));
+        return true;
+      } catch { return false; }
+    },
+    
+    update(key, updater) {
+      const current = this.get(key);
+      const updated = updater(current);
+      return this.set(key, updated);
+    }
+  };
+
+  // ============================================
+  // 2. TOAST MANAGER
+  // ============================================
+  const Toast = {
+    container: null,
+    
+    init() {
+      this.container = document.getElementById('toastContainer');
+    },
+    
+    show(message, type = 'info', duration = 3000) {
+      const div = document.createElement('div');
+      div.className = `toast toast-${type}`;
+      const icons = { success: '✅', error: '❌', warning: '⚠️', info: '💡' };
+      div.innerHTML = `
+        <span>${icons[type] || '💡'}</span>
+        <span style="flex:1;">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+      `;
+      this.container.appendChild(div);
+      setTimeout(() => {
+        if (div.parentElement) {
+          div.style.animation = 'slideOut 0.3s ease forwards';
+          setTimeout(() => div.remove(), 300);
+        }
+      }, duration);
+    }
+  };
+
+  // ============================================
+  // 3. ROUTER
+  // ============================================
+  const Router = {
+    currentPage: 'dashboard',
+    
+    init() {
+      document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const page = item.dataset.page;
+          this.navigate(page);
+        });
+      });
+    },
+    
+    navigate(page) {
+      document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.page === page);
+      });
+      document.querySelectorAll('.page').forEach(p => {
+        p.classList.toggle('active', p.id === `page-${page}`);
+      });
+      this.currentPage = page;
+      if (window.Modules && window.Modules[page]) {
+        window.Modules[page].render && window.Modules[page].render();
+      }
+    }
+  };
+
+  // ============================================
+  // 4. MODÜLLER
+  // ============================================
+  window.Modules = {};
+
+  // ---------- 4.1 EDUCATION ----------
+  window.Modules.education = {
+    render() {
+      this.renderTasks();
+      this.updateStats();
+      this.attachEvents();
+    },
+    
+    getTasks() {
+      return Storage.get('tasks') || [];
+    },
+    
+    renderTasks() {
+      const tasks = this.getTasks();
+      const filter = document.getElementById('taskFilter')?.value || 'Tümü';
+      const filtered = filter === 'Tümü' ? tasks : tasks.filter(t => t.subject === filter);
+      
+      const list = document.getElementById('taskList');
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state">📭 Henüz görev yok</div>';
+      } else {
+        list.innerHTML = filtered.map(task => `
+          <div class="task-item" style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg-input);border-radius:8px;margin:4px 0;border-left:3px solid ${task.completed ? 'var(--success)' : 'var(--primary)'};">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;">
+              <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                     onchange="window.Modules.education.toggleTask('${task.id}')">
+              <span style="${task.completed ? 'text-decoration:line-through;color:var(--text-muted);' : ''}">${task.text}</span>
+              <span style="font-size:11px;background:var(--bg-hover);padding:2px 8px;border-radius:10px;">${task.subject}</span>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="window.Modules.education.deleteTask('${task.id}')">🗑️</button>
+          </div>
+        `).join('');
+      }
+      this.updateStats();
+      this.updateBadge();
+    },
+    
+    updateStats() {
+      const tasks = this.getTasks();
+      const total = tasks.length;
+      const completed = tasks.filter(t => t.completed).length;
+      const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+      
+      document.getElementById('hTotal').textContent = total;
+      document.getElementById('hCompleted').textContent = completed;
+      document.getElementById('hRate').textContent = rate + '%';
+      document.getElementById('dTasks').textContent = total;
+      document.getElementById('dCompleted').textContent = completed;
+      document.getElementById('dRate').textContent = rate + '%';
+      document.getElementById('sTotal').textContent = total;
+      document.getElementById('sCompleted').textContent = completed;
+      document.getElementById('sRate').textContent = rate + '%';
+    },
+    
+    updateBadge() {
+      const tasks = this.getTasks();
+      const pending = tasks.filter(t => !t.completed).length;
+      document.getElementById('sBadge').textContent = pending;
+      document.getElementById('sBadge').style.display = pending > 0 ? 'inline-block' : 'none';
+    },
+    
+    attachEvents() {
+      document.getElementById('addTaskBtn').onclick = () => this.addTask();
+      document.getElementById('taskInput').onkeypress = (e) => { if (e.key === 'Enter') this.addTask(); };
+      document.getElementById('taskFilter').onchange = () => this.renderTasks();
+    },
+    
+    addTask() {
+      const input = document.getElementById('taskInput');
+      const subject = document.getElementById('taskSubject').value;
+      const text = input.value.trim();
+      if (!text) { Toast.show('Lütfen bir görev girin!', 'warning'); return; }
+      
+      const tasks = this.getTasks();
+      tasks.push({ id: Date.now().toString(), text, subject, completed: false, date: new Date().toLocaleDateString('tr-TR') });
+      Storage.set('tasks', tasks);
+      input.value = '';
+      this.renderTasks();
+      Toast.show('Görev eklendi ✅', 'success');
+    },
+    
+    toggleTask(id) {
+      const tasks = this.getTasks().map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      Storage.set('tasks', tasks);
+      this.renderTasks();
+    },
+    
+    deleteTask(id) {
+      if (!confirm('Silmek istediğinize emin misiniz?')) return;
+      const tasks = this.getTasks().filter(t => t.id !== id);
+      Storage.set('tasks', tasks);
+      this.renderTasks();
+      Toast.show('Görev silindi 🗑️', 'error');
+    }
+  };
+
+  // ---------- 4.2 NET ----------
+  window.Modules.net = {
+    examType: 'TYT',
+    subjects: {
+      TYT: ['Türkçe', 'Matematik', 'Fen', 'Sosyal'],
+      AYT: ['Matematik', 'Fizik', 'Kimya', 'Biyoloji', 'Edebiyat', 'Tarih', 'Coğrafya']
+    },
+    lastNet: null,
+    
+    render() {
+      this.renderSubjects();
+      this.renderHistory();
+      this.updateButtons();
+    },
+    
+    switchExam(type) {
+      this.examType = type;
+      this.render();
+      Toast.show(`${type} moduna geçildi`, 'info');
+    },
+    
+    updateButtons() {
+      document.getElementById('netTyTBtn').className = `btn ${this.examType === 'TYT' ? 'btn-primary' : 'btn-outline'}`;
+      document.getElementById('netAyTBtn').className = `btn ${this.examType === 'AYT' ? 'btn-primary' : 'btn-outline'}`;
+    },
+    
+    renderSubjects() {
+      const container = document.getElementById('netSubjects');
+      const subjects = this.subjects[this.examType];
+      container.innerHTML = subjects.map(subject => `
+        <div class="form-group">
+          <label>${subject}</label>
+          <div class="flex-row">
+            <input type="number" id="net_${subject}_correct" placeholder="Doğru" min="0" max="40" style="flex:1;">
+            <input type="number" id="net_${subject}_wrong" placeholder="Yanlış" min="0" max="40" style="flex:1;">
+            <input type="number" id="net_${subject}_empty" placeholder="Boş" min="0" max="40" style="flex:1;">
+          </div>
+        </div>
+      `).join('');
+    },
+    
+    calculate() {
+      const subjects = this.subjects[this.examType];
+      let totalCorrect = 0, totalWrong = 0;
+      let results = {};
+      
+      subjects.forEach(subject => {
+        const correct = parseInt(document.getElementById(`net_${subject}_correct`).value) || 0;
+        const wrong = parseInt(document.getElementById(`net_${subject}_wrong`).value) || 0;
+        const empty = parseInt(document.getElementById(`net_${subject}_empty`).value) || 0;
+        const net = correct - (wrong / 4);
+        results[subject] = { correct, wrong, empty, net: net.toFixed(2) };
+        totalCorrect += correct;
+        totalWrong += wrong;
+      });
+      
+      const totalNet = totalCorrect - (totalWrong / 4);
+      this.lastNet = totalNet;
+      
+      document.getElementById('netDisplay').innerHTML = `
+        <div style="font-size:20px;font-weight:700;color:var(--primary);">Toplam Net: ${totalNet.toFixed(2)}</div>
+        ${Object.entries(results).map(([subject, data]) => `
+          <div style="padding:4px 0;border-bottom:1px solid var(--border-color);">
+            ${subject}: <strong>${data.net}</strong> net (${data.correct}D, ${data.wrong}Y, ${data.empty}B)
+          </div>
+        `).join('')}
+      `;
+      document.getElementById('netResult').style.display = 'block';
+      document.getElementById('hNet').textContent = totalNet.toFixed(2);
+      document.getElementById('dNet').textContent = totalNet.toFixed(2);
+      Toast.show('Net hesaplandı 📊', 'success');
+    },
+    
+    saveNet() {
+      if (this.lastNet === null || this.lastNet === undefined) {
+        Toast.show('Önce hesaplama yapın!', 'warning');
+        return;
+      }
+      const nets = Storage.get('nets') || [];
+      nets.push({ date: new Date().toLocaleDateString('tr-TR'), net: this.lastNet, type: this.examType });
+      Storage.set('nets', nets);
+      this.renderHistory();
+      Toast.show(`Net kaydedildi: ${this.lastNet.toFixed(2)} 💾`, 'success');
+    },
+    
+    renderHistory() {
+      const nets = Storage.get('nets') || [];
+      const list = document.getElementById('netHistory');
+      if (nets.length === 0) {
+        list.innerHTML = '<div class="empty-state">Henüz kayıtlı net yok</div>';
+      } else {
+        list.innerHTML = nets.slice(-10).reverse().map(item => `
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-color);">
+            <span>${item.date}</span>
+            <span style="font-weight:bold;color:var(--success);">${item.net.toFixed(2)} net</span>
+            <span style="color:var(--text-muted);font-size:12px;">${item.type}</span>
+          </div>
+        `).join('');
+      }
+    }
+  };
+</script>
