@@ -162,6 +162,7 @@
   <div class="card">
     <div class="flex-between">
       <div class="card-title" style="margin-bottom:0;">📋 Görevler</div>
+      
       <div>
         <select id="taskFilter" style="width:auto;padding:6px 12px;">
           <option value="Tümü">Tümü</option>
@@ -174,5 +175,86 @@
       </div>
     </div>
     <div id="taskList" class="mt-8"></div>
+  </div>
+</section>
+      <!-- ===== NET ===== -->
+<section id="page-net" class="page">
+  <h2 style="margin-bottom:16px;">🧮 Net Hesaplayıcı</h2>
+  <div class="card">
+    <div class="flex-row">
+      <button class="btn btn-primary" onclick="window.Modules.net.switchExam('TYT')" id="netTyTBtn">TYT</button>
+      <button class="btn btn-outline" onclick="window.Modules.net.switchExam('AYT')" id="netAyTBtn">AYT</button>
+    </div>
+  </div>
+  <div class="card">
+    <div id="netSubjects"></div>
+    <div class="flex-row mt-8">
+      <button class="btn btn-success" onclick="window.Modules.net.calculate()">🧮 Hesapla</button>
+      <button class="btn btn-warning" onclick="window.Modules.net.saveNet()">💾 Kaydet</button>
+    </div>
+    <div id="netResult" class="mt-8" style="display:none;">
+      <div class="card" style="border-color:var(--primary);">
+        <div id="netDisplay"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📊 Net Geçmişi</div>
+    <div id="netHistory"></div>
+  </div>
+</section>
+
+<!-- ===== YKS ===== -->
+<section id="page-yks" class="page">
+  <h2 style="margin-bottom:16px;">🎯 YKS Puan Simülasyonu</h2>
+  <div class="card">
+    <div class="card-title">📊 TYT Puanı</div>
+    <div class="grid-3" id="yksTyTInputs"></div>
+    <button class="btn btn-primary mt-8" onclick="window.Modules.yks.calculate()">🎯 Hesapla</button>
+    <div id="yksResult" class="mt-8" style="display:none;">
+      <div class="card" style="border-color:var(--primary);">
+        <div id="yksDisplay"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📈 Sıralama Tahmini</div>
+    <div id="yksRankDisplay">Henüz hesaplanmadı</div>
+  </div>
+</section>
+
+<!-- ===== STATISTICS ===== -->
+<section id="page-statistics" class="page">
+  <h2 style="margin-bottom:16px;">📈 İstatistikler</h2>
+  <div class="grid-3" id="statCards">
+    <div class="stat-card">
+      <div class="icon">📚</div>
+      <div class="value" id="sTotal">0</div>
+      <div class="label">Toplam Görev</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">✅</div>
+      <div class="value" id="sCompleted">0</div>
+      <div class="label">Tamamlanan</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">📈</div>
+      <div class="value" id="sRate">0%</div>
+      <div class="label">Tamamlama Oranı</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">📈 Net Gelişimi</div>
+      <canvas id="statNetChart" height="200"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Ders Bazlı Görevler</div>
+      <canvas id="statSubjectChart" height="200"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📊 Son 5 Deneme Ortalaması</div>
+    <div id="statLast5Nets">Henüz veri yok</div>
   </div>
 </section>
