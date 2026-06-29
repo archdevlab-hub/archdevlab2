@@ -599,3 +599,95 @@ input:focus, select:focus, textarea:focus {
   margin-top: 4px;
 }
 .stat-card .icon { font-size: 24px; margin-bottom: 4px; }
+  /* ============================================================
+   TOAST
+   ============================================================ */
+#toastContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 360px;
+}
+.toast {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow);
+  animation: slideIn 0.3s ease;
+  border-left: 4px solid var(--primary);
+}
+.toast-success { border-left-color: var(--success); }
+.toast-error { border-left-color: var(--danger); }
+.toast-warning { border-left-color: var(--warning); }
+.toast-info { border-left-color: var(--info); }
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 4px;
+}
+.toast-close:hover { color: var(--text-primary); }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    flex-direction: row;
+    padding: 8px 12px;
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    overflow-x: auto;
+    height: 60px;
+    z-index: 50;
+  }
+  .sidebar-item { 
+    padding: 6px 12px; 
+    font-size: 12px; 
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .sidebar-item .label { display: none; }
+  .main-content { 
+    padding: 16px; 
+    padding-bottom: 80px;
+    max-height: calc(100vh - 130px);
+  }
+  .grid-2, .grid-3, .grid-4 { 
+    grid-template-columns: 1fr; 
+  }
+  .app-header { padding: 10px 16px; }
+  .header-stats { font-size: 11px; gap: 12px; }
+  .app-logo { font-size: 16px; }
+}
+
+@media (max-width: 480px) {
+  .main-content { padding: 12px; }
+  .card { padding: 14px; }
+  .stat-card .value { font-size: 22px; }
+}
