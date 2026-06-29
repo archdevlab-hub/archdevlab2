@@ -258,3 +258,91 @@
     <div id="statLast5Nets">Henüz veri yok</div>
   </div>
 </section>
+          <!-- ===== GOALS ===== -->
+    <section id="page-goals" class="page">
+      <h2 style="margin-bottom:16px;">🏆 Hedef Takip</h2>
+      <div class="card">
+        <div class="card-title">🎯 Yeni Hedef</div>
+        <div class="flex-row">
+          <input type="text" id="goalInput" placeholder="Hedef girin..." style="flex:2;">
+          <input type="number" id="goalTarget" placeholder="Hedef değer" style="flex:1;">
+          <button class="btn btn-success" onclick="window.Modules.goals.add()">Ekle</button>
+        </div>
+      </div>
+      <div id="goalList"></div>
+    </section>
+
+    <!-- ===== CALENDAR ===== -->
+    <section id="page-calendar" class="page">
+      <h2 style="margin-bottom:16px;">📅 Çalışma Takvimi</h2>
+      <div class="card">
+        <div class="flex-between">
+          <button class="btn btn-outline btn-sm" onclick="window.Modules.calendar.prevMonth()">◀</button>
+          <span id="calMonthYear" style="font-weight:600;"></span>
+          <button class="btn btn-outline btn-sm" onclick="window.Modules.calendar.nextMonth()">▶</button>
+        </div>
+        <div id="calendarGrid" class="grid-7 mt-8" style="gap:4px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Aylık İstatistik</div>
+        <div id="calStats">Henüz veri yok</div>
+      </div>
+    </section>
+
+    <!-- ===== POMODORO ===== -->
+    <section id="page-pomodoro" class="page">
+      <h2 style="margin-bottom:16px;">⏱️ Pomodoro Zamanlayıcı</h2>
+      <div class="card" style="text-align:center;padding:40px;">
+        <div style="font-size:64px;font-weight:700;font-variant-numeric:tabular-nums;" id="pomoDisplay">25:00</div>
+        <div style="color:var(--text-secondary);margin:8px 0;" id="pomoStatus">⏸️ Hazır</div>
+        <div class="flex-row" style="justify-content:center;">
+          <button class="btn btn-success" onclick="window.Modules.pomodoro.start()">▶ Başla</button>
+          <button class="btn btn-warning" onclick="window.Modules.pomodoro.pause()">⏸ Duraklat</button>
+          <button class="btn btn-danger" onclick="window.Modules.pomodoro.reset()">⏹ Sıfırla</button>
+        </div>
+        <div class="mt-16" style="display:flex;justify-content:center;gap:20px;font-size:14px;color:var(--text-secondary);">
+          <span>📊 Oturum: <strong id="pomoSessions" style="color:var(--text-primary);">0</strong></span>
+          <span>⏱️ Toplam: <strong id="pomoTotal" style="color:var(--text-primary);">0</strong> dk</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS ===== -->
+    <section id="page-settings" class="page">
+      <h2 style="margin-bottom:16px;">⚙️ Ayarlar</h2>
+      <div class="card">
+        <div class="card-title">🎨 Tema</div>
+        <select id="themeSelect" onchange="window.Modules.settings.changeTheme()">
+          <option value="dark">Koyu</option>
+          <option value="light">Açık</option>
+          <option value="blue">Mavi</option>
+          <option value="green">Yeşil</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-title">📏 Yazı Boyutu</div>
+        <input type="range" id="fontSizeRange" min="12" max="24" value="16" onchange="window.Modules.settings.changeFontSize()">
+        <span id="fontSizeDisplay">16px</span>
+      </div>
+      <div class="card">
+        <div class="card-title">🔔 Bildirimler</div>
+        <label style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);">
+          <input type="checkbox" id="notifToggle" onchange="window.Modules.settings.toggleNotifications()"> 
+          Bildirimleri Aç
+        </label>
+      </div>
+      <div class="card">
+        <div class="card-title">💾 Veri Yönetimi</div>
+        <div class="flex-row">
+          <button class="btn btn-primary" onclick="window.Modules.settings.exportData()">📤 Dışa Aktar</button>
+          <button class="btn btn-warning" onclick="window.Modules.settings.importData()">📥 İçe Aktar</button>
+          <button class="btn btn-danger" onclick="window.Modules.settings.clearData()">🗑️ Tümünü Temizle</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- TOAST KONTEYNERİ -->
+<div id="toastContainer"></div>
