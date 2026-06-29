@@ -104,3 +104,75 @@
 
     <!-- MAIN CONTENT -->
     <main class="main-content" id="mainContent">
+      
+<!-- ===== DASHBOARD ===== -->
+<section id="page-dashboard" class="page active">
+  <h2 style="margin-bottom:16px;">📊 Dashboard</h2>
+  <div class="grid-4" id="dashStats">
+    <div class="stat-card">
+      <div class="icon">📚</div>
+      <div class="value" id="dTasks">0</div>
+      <div class="label">Toplam Görev</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">✅</div>
+      <div class="value" id="dCompleted">0</div>
+      <div class="label">Tamamlanan</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">📈</div>
+      <div class="value" id="dRate">0%</div>
+      <div class="label">Tamamlama Oranı</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">🎯</div>
+      <div class="value" id="dNet">0</div>
+      <div class="label">Son Net</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">📈 Net Gelişimi</div>
+      <canvas id="dashNetChart" height="180"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Görev Durumu</div>
+      <canvas id="dashTaskChart" height="180"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ===== EDUCATION ===== -->
+<section id="page-education" class="page">
+  <h2 style="margin-bottom:16px;">📚 Eğitim Paneli</h2>
+  <div class="card">
+    <div class="card-title">📝 Yeni Görev</div>
+    <div class="flex-row">
+      <input type="text" id="taskInput" placeholder="Görev girin..." style="flex:2;">
+      <select id="taskSubject" style="flex:1;">
+        <option value="Matematik">Matematik</option>
+        <option value="Türkçe">Türkçe</option>
+        <option value="Fen">Fen</option>
+        <option value="Sosyal">Sosyal</option>
+        <option value="Yabancı Dil">Yabancı Dil</option>
+      </select>
+      <button class="btn btn-success" id="addTaskBtn">Ekle</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="flex-between">
+      <div class="card-title" style="margin-bottom:0;">📋 Görevler</div>
+      <div>
+        <select id="taskFilter" style="width:auto;padding:6px 12px;">
+          <option value="Tümü">Tümü</option>
+          <option value="Matematik">Matematik</option>
+          <option value="Türkçe">Türkçe</option>
+          <option value="Fen">Fen</option>
+          <option value="Sosyal">Sosyal</option>
+          <option value="Yabancı Dil">Yabancı Dil</option>
+        </select>
+      </div>
+    </div>
+    <div id="taskList" class="mt-8"></div>
+  </div>
+</section>
