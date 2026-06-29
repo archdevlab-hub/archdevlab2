@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ArchDevLab v8.0 Professional</title>
+  
+  <style>
+    /* ============================================================
+       ROOT DEĞİŞKENLER
+       ============================================================ */
+    :root {
+      --primary: #6c5ce7;
+      --primary-dark: #5a4bd1;
+      --secondary: #00b894;
+      --accent: #fdcb6e;
+      --danger: #e17055;
+      --info: #74b9ff;
+      --success: #00b894;
+      --warning: #fdcb6e;
+      
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #14141e;
+      --bg-card: #1c1c2e;
+      --bg-input: #0f0f1a;
+      --bg-hover: #2a2a42;
+      
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b8;
+      --text-muted: #6a6a82;
+      
+      --border-color: #2a2a42;
+      --border-light: #3a3a52;
+      
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+  <header class="app-header">
+    <div class="app-logo">
+      🏛️ <span>ArchDevLab</span> <span style="font-size:12px;color:var(--text-muted);">v8.0</span>
+    </div>
+    <div class="header-stats" id="headerStats">
+      <span>📚 Görev: <strong id="hTotal">0</strong></span>
+      <span>✅ Tamam: <strong id="hCompleted">0</strong></span>
+      <span>📈 Oran: <strong id="hRate">0%</strong></span>
+      <span>🎯 Net: <strong id="hNet">0</strong></span>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       LAYOUT
+       ============================================================ -->
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+      <button class="sidebar-item active" data-page="dashboard">
+        <span class="icon">📊</span>
+        <span class="label">Dashboard</span>
+      </button>
+      <button class="sidebar-item" data-page="education">
+        <span class="icon">📚</span>
+        <span class="label">Eğitim</span>
+        <span class="badge" id="sBadge">0</span>
+      </button>
+      <button class="sidebar-item" data-page="net">
+        <span class="icon">🧮</span>
+        <span class="label">Net Hesapla</span>
+      </button>
+      <button class="sidebar-item" data-page="yks">
+        <span class="icon">🎯</span>
+        <span class="label">YKS Simülasyon</span>
+      </button>
+      <button class="sidebar-item" data-page="statistics">
+        <span class="icon">📈</span>
+        <span class="label">İstatistik</span>
+      </button>
+      <button class="sidebar-item" data-page="goals">
+        <span class="icon">🏆</span>
+        <span class="label">Hedefler</span>
+      </button>
+      <button class="sidebar-item" data-page="calendar">
+        <span class="icon">📅</span>
+        <span class="label">Takvim</span>
+      </button>
+      <button class="sidebar-item" data-page="pomodoro">
+        <span class="icon">⏱️</span>
+        <span class="label">Pomodoro</span>
+      </button>
+      <button class="sidebar-item" data-page="settings">
+        <span class="icon">⚙️</span>
+        <span class="label">Ayarlar</span>
+      </button>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="mainContent">
