@@ -991,3 +991,479 @@ input:focus, select:focus, textarea:focus {
     }
   };
 </script>
+      // ---------- 4.3 YKS ----------
+    window.Modules.yks = {
+      render() {
+        const container = document.getElementById('yksTyTInputs');
+        const subjects = ['Türkçe', 'Matematik', 'Fen', 'Sosyal'];
+        container.innerHTML = subjects.map(subject => `
+          <div class="form-group">
+            <label>${subject}</label>
+            <input type="number" id="yks_${subject}" placeholder="Net" min="0" max="40">
+          </div>
+        `).join('');
+      },
+      
+      calculate() {
+        const subjects = ['Türkçe', 'Matematik', 'Fen', 'Sosyal'];
+        let total = 0;
+        subjects.forEach(subject => {
+          total += parseInt(document.getElementById(`yks_${subject}`).value) || 0;
+        });
+        
+        const score = Math.round(200 + (total / 40) * 300);
+        const rank = Math.round(1000000 / (1 + Math.exp(-(total - 20) / 5)));
+        
+        document.getElementById('yksDisplay').innerHTML = `
+          <div style="font-size:24px;font-weight:700;color:var(--primary);">🎯 ${score} Puan</div>
+          <div style="font-size:16px;color:var(--text-secondary);">📊 Sıralama Tahmini: #${rank.toLocaleString()}</div>
+          <div style="font-size:14px;color:var(--text-muted);">Toplam Net: ${total}</div>
+        `;
+        document.getElementById('yksResult').style.display = 'block';
+        document.getElementById('yksRankDisplay').innerHTML = `📈 Tahmini Sıralama: <strong>#${rank.toLocaleString()}</strong>`;
+        Toast.show('YKS puanı hesaplandı 🎯', 'success');
+      }
+    };
+
+    // ---------- 4.4 STATISTICS ----------
+    window.Modules.statistics = {
+      render() {
+        this.renderChart();
+        this.renderLast5Nets();
+      },
+      
+      renderChart() {
+        const canvas = document.getElementById('statNetChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const nets = Storage.get('nets') || [];
+        const data = nets.slice(-10);
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (data.length === 0) {
+          ctx.fillStyle = '#888';
+          ctx.font = '16px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Henüz veri yok', canvas.width/2, canvas.height/2);
+          return;
+        }
+        
+        const padding = 40;
+        const w = canvas.width - padding * 2;
+        const h = canvas.height - padding * 2;
+        const max = Math.max(...data.map(d => d.net), 10);
+        const min = Math.min(...data.map(d => d.net), 0);
+        const range = max - min || 1;
+        
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, padding + h);
+        ctx.lineTo(padding + w, padding + h);
+        ctx.stroke();
+        
+        ctx.strokeStyle = '#6c5ce7';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        data.forEach((item, i) => {
+          const x = padding + (i / (data.length - 1)) * w;
+          const y = padding + h - ((item.net - min) / range) * h;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        
+        ctx.fillStyle = '#6c5ce7';
+        data.forEach((item, i) => {
+          const x = padding + (i / (data.length - 1)) * w;
+          const y = padding + h - ((item.net - min) / range) * h;
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#aaa';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(item.net.toFixed(1), x, y - 10);
+          ctx.fillStyle = '#6c5ce7';
+        });
+      },
+      
+      renderLast5Nets() {
+        const nets = Storage.get('nets') || [];
+        const last5 = nets.slice(-5);
+        const container = document.getElementById('statLast5Nets');
+        if (last5.length === 0) {
+          container.innerHTML = 'Henüz veri yok';
+          return;
+        }
+        const avg = last5.reduce((sum, n) => sum + n.net, 0) / last5.length;
+        container.innerHTML = `
+          <div style="display:flex;gap:20px;flex-wrap:wrap;">
+            ${last5.map((n, i) => `
+              <div style="text-align:center;background:var(--bg-input);padding:8px 16px;border-radius:8px;">
+                <div style="font-size:12px;color:var(--text-muted);">${i+1}. Deneme</div>
+                <div style="font-size:18px;font-weight:700;color:var(--primary);">${n.net.toFixed(2)}</div>
+              </div>
+            `).join('')}
+            <div style="text-align:center;background:var(--bg-input);padding:8px 16px;border-radius:8px;border:2px solid var(--success);">
+              <div style="font-size:12px;color:var(--text-muted);">📊 Ortalama</div>
+              <div style="font-size:18px;font-weight:700;color:var(--success);">${avg.toFixed(2)}</div>
+            </div>
+          </div>
+        `;
+      }
+    };
+
+    // ---------- 4.5 GOALS ----------
+    window.Modules.goals = {
+      render() {
+        this.renderGoals();
+      },
+      
+      getGoals() {
+        return Storage.get('goals') || [];
+      },
+      
+      renderGoals() {
+        const goals = this.getGoals();
+        const container = document.getElementById('goalList');
+        if (goals.length === 0) {
+          container.innerHTML = '<div class="empty-state">🏆 Henüz hedef yok</div>';
+        } else {
+          container.innerHTML = goals.map((goal, index) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg-input);border-radius:8px;margin:4px 0;border-left:3px solid var(--primary);">
+              <div style="flex:1;">
+                <div style="font-weight:600;">${goal.text}</div>
+                <div style="font-size:13px;color:var(--text-secondary);">
+                  Hedef: ${goal.target} | İlerleme: ${goal.progress || 0}%
+                </div>
+                <div style="width:100%;height:6px;background:var(--bg-hover);border-radius:3px;margin-top:4px;">
+                  <div style="width:${goal.progress || 0}%;height:100%;background:var(--primary);border-radius:3px;transition:width 0.5s;"></div>
+                </div>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="window.Modules.goals.deleteGoal(${index})">🗑️</button>
+            </div>
+          `).join('');
+        }
+      },
+      
+      add() {
+        const input = document.getElementById('goalInput');
+        const target = document.getElementById('goalTarget');
+        const text = input.value.trim();
+        const value = parseInt(target.value);
+        if (!text || !value) { Toast.show('Lütfen hedef ve değer girin!', 'warning'); return; }
+        
+        const goals = this.getGoals();
+        goals.push({ text, target: value, progress: 0 });
+        Storage.set('goals', goals);
+        input.value = '';
+        target.value = '';
+        this.renderGoals();
+        Toast.show('Hedef eklendi 🏆', 'success');
+      },
+      
+      deleteGoal(index) {
+        if (!confirm('Hedefi silmek istediğinize emin misiniz?')) return;
+        const goals = this.getGoals().filter((_, i) => i !== index);
+        Storage.set('goals', goals);
+        this.renderGoals();
+        Toast.show('Hedef silindi', 'error');
+      }
+    };
+
+    // ---------- 4.6 CALENDAR ----------
+    window.Modules.calendar = {
+      currentMonth: new Date().getMonth(),
+      currentYear: new Date().getFullYear(),
+      
+      render() {
+        this.renderCalendar();
+        this.renderStats();
+      },
+      
+      renderCalendar() {
+        const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+        document.getElementById('calMonthYear').textContent = `${monthNames[this.currentMonth]} ${this.currentYear}`;
+        
+        const firstDay = new Date(this.currentYear, this.currentMonth, 1).getDay();
+        const daysInMonth = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+        const today = new Date().toDateString();
+        
+        const calendar = Storage.get('calendar') || {};
+        const grid = document.getElementById('calendarGrid');
+        
+        let html = '';
+        const dayNames = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+        dayNames.forEach(d => {
+          html += `<div style="text-align:center;font-size:12px;color:var(--text-muted);padding:4px;">${d}</div>`;
+        });
+        
+        const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+        for (let i = 0; i < startOffset; i++) {
+          html += '<div></div>';
+        }
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(this.currentYear, this.currentMonth, day);
+          const dateStr = date.toDateString();
+          const isToday = dateStr === today;
+          const dayData = calendar[dateStr] || { completed: 0, total: 0 };
+          const rate = dayData.total > 0 ? Math.round((dayData.completed / dayData.total) * 100) : 0;
+          
+          let color = 'var(--bg-input)';
+          if (rate >= 80) color = 'var(--success)';
+          else if (rate >= 50) color = 'var(--warning)';
+          else if (rate > 0) color = 'var(--danger)';
+          
+          html += `
+            <div style="text-align:center;padding:8px 0;background:${color};border-radius:4px;${isToday ? 'border:2px solid var(--primary);' : ''} cursor:pointer;"
+                 onclick="window.Modules.calendar.toggleDay('${dateStr}')">
+              ${day}
+              ${dayData.total > 0 ? `<div style="font-size:8px;color:var(--text-primary);">${rate}%</div>` : ''}
+            </div>
+          `;
+        }
+        grid.innerHTML = html;
+      },
+      
+      toggleDay(dateStr) {
+        const calendar = Storage.get('calendar') || {};
+        if (!calendar[dateStr]) calendar[dateStr] = { completed: 0, total: 0 };
+        calendar[dateStr].completed += 1;
+        calendar[dateStr].total += 1;
+        Storage.set('calendar', calendar);
+        this.renderCalendar();
+        this.renderStats();
+        Toast.show('Çalışma kaydedildi 📅', 'success');
+      },
+      
+      renderStats() {
+        const calendar = Storage.get('calendar') || {};
+        const monthKey = `${this.currentYear}-${this.currentMonth}`;
+        let total = 0, completed = 0;
+        Object.entries(calendar).forEach(([date, data]) => {
+          const d = new Date(date);
+          if (d.getMonth() === this.currentMonth && d.getFullYear() === this.currentYear) {
+            total += data.total || 0;
+            completed += data.completed || 0;
+          }
+        });
+        document.getElementById('calStats').innerHTML = `
+          <div style="display:flex;gap:20px;flex-wrap:wrap;">
+            <div>📊 Toplam Çalışma: <strong>${total}</strong></div>
+            <div>✅ Tamamlanan: <strong>${completed}</strong></div>
+            <div>📈 Oran: <strong>${total > 0 ? Math.round((completed/total)*100) : 0}%</strong></div>
+          </div>
+        `;
+      },
+      
+      prevMonth() {
+        this.currentMonth--;
+        if (this.currentMonth < 0) { this.currentMonth = 11; this.currentYear--; }
+        this.render();
+      },
+      
+      nextMonth() {
+        this.currentMonth++;
+        if (this.currentMonth > 11) { this.currentMonth = 0; this.currentYear++; }
+        this.render();
+      }
+    };
+
+    // ---------- 4.7 POMODORO ----------
+    window.Modules.pomodoro = {
+      timer: null,
+      timeLeft: 25 * 60,
+      isRunning: false,
+      isBreak: false,
+      
+      render() {
+        this.updateDisplay();
+        this.updateStats();
+      },
+      
+      start() {
+        if (this.isRunning) return;
+        this.isRunning = true;
+        document.getElementById('pomoStatus').textContent = '⏳ Çalışıyor...';
+        this.timer = setInterval(() => {
+          this.timeLeft--;
+          this.updateDisplay();
+          if (this.timeLeft === 0) {
+            clearInterval(this.timer);
+            this.isRunning = false;
+            this.isBreak = !this.isBreak;
+            this.timeLeft = this.isBreak ? 5 * 60 : 25 * 60;
+            const pomodoro = Storage.get('pomodoro') || { sessions: 0, totalMinutes: 0 };
+            if (!this.isBreak) {
+              pomodoro.sessions += 1;
+              pomodoro.totalMinutes += 25;
+              Storage.set('pomodoro', pomodoro);
+              this.updateStats();
+            }
+            document.getElementById('pomoStatus').textContent = this.isBreak ? '☕ Mola' : '⏸️ Hazır';
+            Toast.show(this.isBreak ? '☕ Mola zamanı!' : '✅ Oturum tamamlandı!', this.isBreak ? 'warning' : 'success');
+            this.updateDisplay();
+          }
+        }, 1000);
+      },
+      
+      pause() {
+        clearInterval(this.timer);
+        this.isRunning = false;
+        document.getElementById('pomoStatus').textContent = '⏸️ Duraklatıldı';
+      },
+      
+      reset() {
+        clearInterval(this.timer);
+        this.isRunning = false;
+        this.isBreak = false;
+        this.timeLeft = 25 * 60;
+        this.updateDisplay();
+        document.getElementById('pomoStatus').textContent = '⏸️ Hazır';
+      },
+      
+      updateDisplay() {
+        const minutes = Math.floor(this.timeLeft / 60);
+        const seconds = this.timeLeft % 60;
+        document.getElementById('pomoDisplay').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      },
+      
+      updateStats() {
+        const pomodoro = Storage.get('pomodoro') || { sessions: 0, totalMinutes: 0 };
+        document.getElementById('pomoSessions').textContent = pomodoro.sessions;
+        document.getElementById('pomoTotal').textContent = pomodoro.totalMinutes;
+      }
+    };
+
+    // ---------- 4.8 SETTINGS ----------
+    window.Modules.settings = {
+      render() {
+        const settings = Storage.get('settings');
+        document.getElementById('themeSelect').value = settings.theme;
+        document.getElementById('fontSizeRange').value = settings.fontSize;
+        document.getElementById('fontSizeDisplay').textContent = settings.fontSize + 'px';
+        document.getElementById('notifToggle').checked = settings.notifications;
+        this.applyTheme(settings.theme);
+        document.documentElement.style.fontSize = settings.fontSize + 'px';
+      },
+      
+      applyTheme(theme) {
+        const root = document.documentElement;
+        const themes = {
+          dark: { bg: '#0a0a0f', card: '#1c1c2e', input: '#0f0f1a', hover: '#2a2a42', text: '#ffffff', textSec: '#a0a0b8', border: '#2a2a42' },
+          light: { bg: '#f0f0f0', card: '#ffffff', input: '#e8e8e8', hover: '#d0d0d0', text: '#000000', textSec: '#555555', border: '#cccccc' },
+          blue: { bg: '#0a1628', card: '#1a2a4a', input: '#0f1f3a', hover: '#2a4a6a', text: '#ffffff', textSec: '#a0b8d0', border: '#3a5a7a' },
+          green: { bg: '#0a1a0a', card: '#1a2a1a', input: '#0f1f0f', hover: '#2a4a2a', text: '#ffffff', textSec: '#a0d0a0', border: '#3a5a3a' }
+        };
+        const t = themes[theme] || themes.dark;
+        root.style.setProperty('--bg-primary', t.bg);
+        root.style.setProperty('--bg-secondary', t.bg);
+        root.style.setProperty('--bg-card', t.card);
+        root.style.setProperty('--bg-input', t.input);
+        root.style.setProperty('--bg-hover', t.hover);
+        root.style.setProperty('--text-primary', t.text);
+        root.style.setProperty('--text-secondary', t.textSec);
+        root.style.setProperty('--border-color', t.border);
+        Storage.update('settings', s => ({ ...s, theme }));
+      },
+      
+      changeTheme() {
+        const theme = document.getElementById('themeSelect').value;
+        this.applyTheme(theme);
+        Toast.show('Tema değiştirildi 🎨', 'info');
+      },
+      
+      changeFontSize() {
+        const size = document.getElementById('fontSizeRange').value;
+        document.getElementById('fontSizeDisplay').textContent = size + 'px';
+        document.documentElement.style.fontSize = size + 'px';
+        Storage.update('settings', s => ({ ...s, fontSize: parseInt(size) }));
+      },
+      
+      toggleNotifications() {
+        const enabled = document.getElementById('notifToggle').checked;
+        Storage.update('settings', s => ({ ...s, notifications: enabled }));
+        Toast.show(enabled ? '🔔 Bildirimler açıldı' : '🔕 Bildirimler kapatıldı', 'info');
+      },
+      
+      exportData() {
+        const data = {
+          tasks: Storage.get('tasks'),
+          nets: Storage.get('nets'),
+          goals: Storage.get('goals'),
+          calendar: Storage.get('calendar'),
+          pomodoro: Storage.get('pomodoro'),
+          settings: Storage.get('settings')
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `archdevlab-backup-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        Toast.show('Veriler dışa aktarıldı 📤', 'success');
+      },
+      
+      importData() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              const data = JSON.parse(event.target.result);
+              Object.keys(data).forEach(key => Storage.set(key, data[key]));
+              Toast.show('Veriler içe aktarıldı 📥', 'success');
+              location.reload();
+            } catch {
+              Toast.show('Geçersiz dosya!', 'error');
+            }
+          };
+          reader.readAsText(file);
+        };
+        input.click();
+      },
+      
+      clearData() {
+        if (!confirm('Tüm veriler silinecek! Devam etmek istediğinize emin misiniz?')) return;
+        if (!confirm('Bu işlem geri alınamaz! Emin misiniz?')) return;
+        Object.keys(Storage.defaults).forEach(key => {
+          localStorage.removeItem(Storage.prefix + key);
+        });
+        Toast.show('Tüm veriler temizlendi 🗑️', 'error');
+        location.reload();
+      }
+    };
+
+    // ============================================
+    // 5. UYGULAMA BAŞLATMA
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      Toast.init();
+      Router.init();
+      
+      // Başlangıç sayfasını yükle
+      const initialPage = 'dashboard';
+      document.querySelector(`.sidebar-item[data-page="${initialPage}"]`)?.classList.add('active');
+      document.getElementById(`page-${initialPage}`)?.classList.add('active');
+      
+      // Tüm modülleri render et
+      Object.values(window.Modules).forEach(module => {
+        if (module.render) module.render();
+      });
+      
+      // Education modülünü manuel render et (başlangıçta)
+      window.Modules.education.render();
+      
+      console.log('🏛️ ArchDevLab v8.0 Professional başlatıldı!');
+    });
+  </script>
+</body>
+        </html>
+  
